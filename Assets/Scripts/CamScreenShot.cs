@@ -12,7 +12,25 @@ public class CamScreenShot : MonoBehaviour
     public Image image;
     public GameObject TargetSnap;
 
+    public Texture2D DeCompress(Texture2D source)
+    {
+        RenderTexture renderTex = RenderTexture.GetTemporary(
+                    source.width,
+                    source.height,
+                    0,
+                    RenderTextureFormat.Default,
+                    RenderTextureReadWrite.Linear);
 
+        Graphics.Blit(source, renderTex);
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture.active = renderTex;
+        Texture2D readableText = new Texture2D(source.width, source.height);
+        readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+        readableText.Apply();
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(renderTex);
+        return readableText;
+    }
     public void onClickSnapShot()
 
     {
@@ -23,45 +41,63 @@ public class CamScreenShot : MonoBehaviour
     {
         yield return new WaitForSeconds(2);
         var tex = LoadPNG(Application.dataPath + "/Prefabs/snapshots/.png");
-        Debug.Log(Application.dataPath + "/Prefabs/snapshots/.png");
-        Debug.Log(tex);
+        // Debug.Log("Application.dataPath: " + Application.dataPath + "/Prefabs/snapshots/.png");
+        // Debug.Log("tex:" + tex);
+        // Debug.Log("Application.persistentDataPath: " + Application.persistentDataPath);
         var sprite = CreateSprite(tex);
         ChangeImg(sprite);
     }
 
-    private static void DoSnapshot(GameObject go, Canvas canvas, Camera cam)
+    private void DoSnapshot(GameObject go, Canvas canvas, Camera cam)
     {
-        var ins = GameObject.Instantiate(go, canvas.transform, false);
+        // var ins = GameObject.Instantiate(go, canvas.transform, false);
+        // ins.SetActive(true);
+        // string fileName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(go)) + ".png";
+        // string astPath = "Assets/Prefabs/snapshots/" + fileName;
+        // fileName = Application.dataPath + "/Prefabs/snapshots/" + fileName;
+        // FileInfo info = new FileInfo(fileName);
+        // if (info.Exists)
+        //     File.Delete(fileName);
+        // else if (!info.Directory.Exists)
+        //     info.Directory.Create();
 
-        ins.SetActive(true);
+        // var renderTarget = RenderTexture.GetTemporary(1080, 1920);
+        // cam.aspect = 1 / (1920.0f / 1080f);
+        // cam.orthographic = true;
+        // cam.targetTexture = renderTarget;
+        // cam.Render();
 
-        string fileName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(go)) + ".png";
-        string astPath = "Assets/Prefabs/snapshots/" + fileName;
-        fileName = Application.dataPath + "/Prefabs/snapshots/" + fileName;
-        FileInfo info = new FileInfo(fileName);
-        if (info.Exists)
-            File.Delete(fileName);
-        else if (!info.Directory.Exists)
-            info.Directory.Create();
+        // RenderTexture.active = renderTarget;
+        // Texture2D tex = new Texture2D(renderTarget.width, renderTarget.height);
+        // tex.ReadPixels(new Rect(0, 0, renderTarget.width, renderTarget.height), 0, 0);
 
-        var renderTarget = RenderTexture.GetTemporary(1080, 1920);
-        cam.aspect = 1 / (1920.0f / 1080f);
-        cam.orthographic = true;
-        cam.targetTexture = renderTarget;
-        cam.Render();
+        // File.WriteAllBytes(fileName, tex.EncodeToPNG());
 
-        RenderTexture.active = renderTarget;
-        Texture2D tex = new Texture2D(renderTarget.width, renderTarget.height);
-        tex.ReadPixels(new Rect(0, 0, renderTarget.width, renderTarget.height), 0, 0);
+        // cam.targetTexture = null;
+        // Object.DestroyImmediate(ins);
+        // // cam.gameObject.SetActive(false);
+        // var sprite = CreateSprite(tex);
+        string fileName = Application.persistentDataPath + "testTexture.jpg";
+        if (File.Exists(fileName))
+        {
+            Debug.Log("file exist");
+            Debug.Log(fileName);
 
-        File.WriteAllBytes(fileName, tex.EncodeToPNG());
-
-        cam.targetTexture = null;
-        Object.DestroyImmediate(ins);
-        cam.gameObject.SetActive(false);
-        var sprite = CreateSprite(tex);
+        }
+        else
+        {
+            var texture = new Texture2D(512, 512);
+            texture = (Texture2D)image.mainTexture;
+            Texture2D decopmpresseTex = DeCompress(texture);
+            byte[] bytes = decopmpresseTex.EncodeToJPG();
+            File.WriteAllBytes(Application.persistentDataPath + "testTexture.jpg", bytes);
+        }
+    }
+    public static class ExtensionMethod
+    {
 
     }
+
     private void ChangeImg(Sprite targetImg)
     {
         image.sprite = targetImg;
