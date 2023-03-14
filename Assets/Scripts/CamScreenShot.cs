@@ -69,7 +69,8 @@ public class CamScreenShot : MonoBehaviour
     }
     private static Sprite CreateSprite(Texture2D tex)
     {
-        var sprite = Sprite.Create(tex, new Rect(0, 0, 1080, 1920f), Vector2.up, 100.0f);
+        // create sprite from tex 
+        var sprite = Sprite.Create(tex, new Rect(500.0f, 900.0f, 500, 500f), Vector2.down, 100.0f, uint.MaxValue, 0, new Vector4(1, 1, 1, 0), true);
         return sprite;
     }
     public static Texture2D LoadPNG(string filePath)
